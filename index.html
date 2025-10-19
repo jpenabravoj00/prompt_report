@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ✨ New Feature: Content Security Policy (CSP) for security -->
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self'; 
+                   script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net/npm/marked/marked.min.js https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js; 
+                   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+                   font-src 'self' https://fonts.gstatic.com; 
+                   connect-src 'self' https://generativelanguage.googleapis.com;">
+    <title>Comprehensive Report Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- ✨ New Feature: DOMPurify for sanitizing output -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* ✨ Report Formatting Styles - These will now be correctly applied by the new prompt schema ✨ */
+
+        /* General container for the report for consistent spacing */
+        #report-output {
+            color: #374151; /* Slightly softer than pure black */
+        }
+
+        /* --- Strong Visual Hierarchy for Headers --- */
+        #report-output h1, #report-output h2, #report-output h3 {
+            font-weight: 700;
+            margin-bottom: 0.75rem; /* Space below header */
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        /* More white space above main sections */
+        #report-output h1 { 
+            font-size: 2.25rem; /* Larger for main title */
+            margin-top: 0; /* No top margin for the very first element */
+            border-bottom-width: 2px;
+        }
+        #report-output h2 { 
+            font-size: 1.75rem;
+            margin-top: 2.5rem; /* Generous space to break up sections */
+        }
+        #report-output h3 { 
+            font-size: 1.25rem; 
+            margin-top: 2rem; /* More space for sub-sections */
+            border-bottom: none; /* No border for H3 to make it less heavy */
+            font-weight: 600;
+        }
+        
+        /* --- Improved Readability for Text --- */
+        #report-output p { 
+            margin-bottom: 1.25rem; /* More space between paragraphs */
+            line-height: 1.7; /* Increased line height for easier reading */
+        }
+
+        /* --- Scannable Lists --- */
+        #report-output ul { 
+            list-style-type: disc; 
+            margin-left: 1.5rem; 
+            margin-bottom: 1.25rem;
+            padding-left: 1rem; /* Better indentation */
+        }
+        #report-output ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem; 
+            margin-bottom: 1.25rem;
+            padding-left: 1rem;
+        }
+        #report-output li {
+            margin-bottom: 0.625rem; /* Space between list items */
+        }
+
+        /* --- Clearer Tables --- */
+        #report-output table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.07); /* Subtle shadow */
+            border-radius: 0.5rem;
+            overflow: hidden; /* Ensures border radius is respected */
+        }
+        #report-output th, #report-output td {
+            border: 1px solid #e5e7eb;
+            padding: 1rem; /* More padding for less density */
+            text-align: left;
+        }
+        #report-output th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+
+        /* --- Other Elements --- */
+        #report-output code {
+            background-color: #e5e7eb;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto max-w-4xl px-4 py-8 md:py-12">
+
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Jose's Quick Report Generator</h1>
+            <p class="mt-2 text-lg text-gray-600">Get quick, AI-powered reports on any topic.</p>
+        </header>
+
+        <main class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+            <!-- ✨ New Feature: Security Notification -->
+            <div id="security-notice" class="mb-6 p-4 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg text-sm">
+                <p><strong class="font-semibold">Security Update:</strong> To protect your API key, it is now stored only for your current browser session and will be cleared when you close this tab. We have also implemented a strict Content Security Policy to prevent unauthorized scripts from running.</p>
+            </div>
+            
+            <!-- API Key Input -->
+            <div class="mb-6 p-4 bg-gray-100 border border-gray-200 rounded-lg">
+                 <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-2">Enter Your Gemini API Key:</label>
+                 <div class="flex flex-col sm:flex-row gap-4">
+                    <input type="password" id="api-key-input" class="flex-grow w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Paste your API key here">
+                    <button id="save-key-btn" class="w-full sm:w-auto bg-purple-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-200 shadow-sm">
+                        Save Key
+                    </button>
+                 </div>
+                 <p class="text-xs text-gray-500 mt-2">Your key is saved for this session only. Get a key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Google AI Studio</a>.</p>
+            </div>
+
+            <div class="mb-6">
+                <label for="topic-input" class="block text-sm font-medium text-gray-700 mb-2">Enter Report Topic:</label>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input type="text" id="topic-input" class="flex-grow w-full px-4 py-2 text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="e.g., 'Impact of Quantum Computing on Cybersecurity'">
+                    <button id="suggest-btn" class="w-full sm:w-auto bg-gray-200 text-gray-800 font-semibold px-6 py-2 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition duration-200">
+                        ✨ Suggest Topic
+                    </button>
+                    <button id="generate-btn" class="w-full sm:w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 shadow-sm">
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loader" class="hidden text-center my-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p class="mt-2 text-gray-600">Generating report... This may take a moment.</p>
+            </div>
+
+            <!-- Report Output Area -->
+            <div id="report-container" class="hidden mt-8 border-t border-gray-200 pt-6">
+                 <h2 class="text-2xl font-bold text-gray-900 mb-4">Generated Report</h2>
+                 
+                 <!-- Action Buttons -->
+                 <div class="flex flex-wrap gap-4 mb-4">
+                    <button id="summarize-btn" class="bg-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-200 shadow-sm">
+                        ✨ Summarize Report
+                    </button>
+                    <button id="download-md-btn" class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200 shadow-sm">
+                        ⬇️ Download .md
+                    </button>
+                    <button id="copy-gdocs-btn" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition duration-200 shadow-sm">
+                        📋 Copy for Google Docs
+                    </button>
+                 </div>
+
+                 <!-- Summary Output Area -->
+                <div id="summary-container" class="hidden mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Summary</h3>
+                    <div id="summary-output" class="prose max-w-none"></div>
+                </div>
+                <div id="report-output" class="prose max-w-none"></div>
+            </div>
+            
+             <!-- Error Message Area -->
+            <div id="error-container" class="hidden mt-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+                <strong class="font-bold">Error:</strong>
+                <span class="block sm:inline" id="error-message"></span>
+            </div>
+        </main>
+        
+        <footer class="text-center mt-8 text-sm text-gray-500">
+            <p>Built as a proof-of-concept for advanced LLM application architecture.</p>
+        </footer>
+
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generate-btn');
+        const suggestBtn = document.getElementById('suggest-btn');
+        const summarizeBtn = document.getElementById('summarize-btn');
+        const topicInput = document.getElementById('topic-input');
+        const loader = document.getElementById('loader');
+        const reportContainer = document.getElementById('report-container');
+        const reportOutput = document.getElementById('report-output');
+        const summaryContainer = document.getElementById('summary-container');
+        const summaryOutput = document.getElementById('summary-output');
+        const errorContainer = document.getElementById('error-container');
+        const errorMessage = document.getElementById('error-message');
+        const downloadMdBtn = document.getElementById('download-md-btn');
+        const copyGdocsBtn = document.getElementById('copy-gdocs-btn');
+        // ✨ New DOM elements for API Key
+        const apiKeyInput = document.getElementById('api-key-input');
+        const saveKeyBtn = document.getElementById('save-key-btn');
+        
+        let currentReportMarkdown = '';
+        let currentTopic = '';
+        
+        // The hardcoded API key is now removed from here.
+
+        /**
+         * ✨ New Feature: Saves the user's API key to local storage.
+         */
+        function saveApiKey() {
+            const apiKey = apiKeyInput.value.trim();
+            if (apiKey) {
+                // Use sessionStorage instead of localStorage for better security
+                sessionStorage.setItem('gemini-api-key', apiKey);
+                const originalText = saveKeyBtn.innerHTML;
+                saveKeyBtn.innerHTML = '✅ Saved!';
+                saveKeyBtn.disabled = true;
+                setTimeout(() => {
+                    saveKeyBtn.innerHTML = originalText;
+                    saveKeyBtn.disabled = false;
+                }, 2000);
+            } else {
+                alert("Please enter a valid API key.");
+            }
+        }
+
+        /**
+         * ✨ New Feature: Loads the API key from local storage on page load.
+         */
+        function loadApiKey() {
+            // Use sessionStorage instead of localStorage
+            const savedKey = sessionStorage.getItem('gemini-api-key');
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+            }
+        }
+
+        /**
+         * Builds the main report generation prompt.
+         */
+        function buildPrompt(topic) {
+            console.log("[Workflow Step 1] Building Prompt: Assembling the final prompt for the LLM.");
+            // This prompt is an exact implementation of the architectural design.
+            // ✨ This is the updated section with improved formatting instructions. ✨
+            return `Persona:
+You are a Principal Research Analyst with executive-level domain expertise. Your core objective is the rigorous synthesis of complex, raw input data into objective, actionable reports. Your output must be precise, data-driven, meticulously sourced, and strictly professional.
+Task and Output Constraint (MANDATORY):
+Generate a comprehensive, structured report on the user-defined topic. Your entire response MUST strictly adhere to the provided Markdown schema below. Do not generate any conversational text, preamble, pleasantries, or commentary before or after the report, including phrases like "Here is the report". Output ONLY the final Markdown block.
+Reasoning and Strategy (Chain-of-Thought):
+Before generating the final report, you must reason through your plan internally. In a single <thinking> block, outline your strategy to ensure the final report is strictly objective and supported by the context provided. This strategy must include:
+1. Identifying 2-3 core analytical themes present in the <context>.
+2. Defining the specific structure for the "In-Depth Analysis" section, assigning relevant context chunks to each subsection.
+3. Pre-extracting the critical numerical and factual data points necessary to populate the "Supporting Data" table and identifying their original source references from the retrieved text.
+4. Formulating the Executive Summary and Key Findings based exclusively on the analyzed data. This reasoning block is mandatory but must NOT be part of the final output.
+Contextual Information (RAG Data Source):
+Base all analysis, findings, data points, and sourcing exclusively on the information retrieved from your web search. If your search returns no relevant information, state that the report cannot be generated due to a lack of data.
+Report Topic:
+${topic}
+Output Schema (MANDATORY):
+Your final output must be a single Markdown block. Do not deviate from this structure. Use headers and lists exactly as specified.
+
+# Report on: ${topic}
+
+## Executive Summary
+(Must be a concise, single paragraph. Ensure a blank line follows this section for spacing.)
+...
+
+## Key Findings
+(Must be 2-3 distinct, bulleted points. Use bolding for the finding's title for scannability. Ensure a blank line follows this section.)
+* **Finding 1:** ...
+* **Finding 2:** ...
+
+## In-Depth Analysis
+(Use sub-headings for each analytical theme. Ensure paragraphs are separated by blank lines for readability.)
+
+### Sub-Topic A
+(Analysis derived from the strategy outlined in the <thinking> block.)
+...
+
+### Sub-Topic B
+(Analysis derived from the strategy outlined in the <thinking> block.)
+...
+
+## Supporting Data
+(Must contain data points cited explicitly in the context. Ensure a blank line follows this section.)
+| Metric | Value | Source |
+|---|---|---|
+| ... | ... | ... |
+| ... | ... | ... |
+
+## Sources and References
+(A numbered list of all unique source documents. Each source MUST be a clickable Markdown link formatted as: \`1. [Source Title](URL)\`.)
+1. ...
+2. ...`;
+        }
+        
+        /**
+         * Generic function to call the Gemini API.
+         * Can be used with or without the Google Search tool.
+         */
+        async function callGemini(prompt, useSearch = false) {
+            // Get the API key from the input field.
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) {
+                throw new Error("API Key is missing. Please enter your key above.");
+            }
+
+            console.log(`[LLM Call] Calling Gemini. Search enabled: ${useSearch}`);
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+            };
+            
+            if (useSearch) {
+                payload.tools = [{ "google_search": {} }];
+            }
+            
+            let response;
+            let retries = 0;
+            const maxRetries = 5;
+
+            while (retries < maxRetries) {
+                try {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        const candidate = result.candidates?.[0];
+                        if (candidate && candidate.content?.parts?.[0]?.text) {
+                            return candidate.content.parts[0].text;
+                        } else {
+                            throw new Error("Invalid response structure from API.");
+                        }
+                    } else if (response.status === 429 || response.status >= 500) {
+                        // Throttling or server error, so we retry
+                        throw new Error(`API request failed with status ${response.status}`);
+                    } else {
+                        // Other client-side error, don't retry
+                        const errorResult = await response.json();
+                        // Check for specific auth error
+                        if (response.status === 400 || response.status === 403) {
+                             throw new Error("Your API key seems to be invalid or expired. Please check it and save it again.");
+                        }
+                        throw new Error(errorResult.error?.message || `API Error: ${response.status}`);
+                    }
+                } catch (error) {
+                    retries++;
+                    if (retries >= maxRetries) {
+                        throw error; // Max retries reached
+                    }
+                    const delay = Math.pow(2, retries) * 1000; // Exponential backoff
+                    console.warn(`API call failed. Retrying in ${delay}ms... (${retries}/${maxRetries})`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        /**
+         * ✨ New Feature: Downloads the report as a Markdown file.
+         */
+        function downloadMarkdown() {
+            if (!currentReportMarkdown) return;
+
+            const blob = new Blob([currentReportMarkdown], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            const filename = `${currentTopic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.md`;
+            
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * ✨ New Feature: Copies the report's formatted HTML for pasting into Google Docs.
+         */
+        function copyForGDocs() {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = reportOutput.innerHTML;
+            document.body.appendChild(tempDiv);
+            
+            window.getSelection().removeAllRanges();
+            const range = document.createRange();
+            range.selectNode(tempDiv);
+            window.getSelection().addRange(range);
+            
+            try {
+                const successful = document.execCommand('copy');
+                const msg = successful ? 'successful' : 'unsuccessful';
+                console.log('Copying HTML was ' + msg);
+
+                // Provide user feedback
+                const originalText = copyGdocsBtn.innerHTML;
+                copyGdocsBtn.innerHTML = '✅ Copied!';
+                copyGdocsBtn.disabled = true;
+                setTimeout(() => {
+                    copyGdocsBtn.innerHTML = originalText;
+                    copyGdocsBtn.disabled = false;
+                }, 2000);
+
+            } catch (err) {
+                console.error('Oops, unable to copy', err);
+            }
+            
+            document.body.removeChild(tempDiv);
+            window.getSelection().removeAllRanges();
+        }
+
+        /**
+         * ✨ New Feature: Suggests a research topic.
+         */
+        async function suggestTopic() {
+            console.log("[Feature] Suggesting a topic...");
+            loader.classList.remove('hidden');
+            errorContainer.classList.add('hidden');
+            suggestBtn.disabled = true;
+            generateBtn.disabled = true;
+
+            const prompt = "Suggest one interesting and specific topic for a research report. Return only the topic title itself, with no extra text, numbering, or quotation marks.";
+
+            try {
+                const topic = await callGemini(prompt);
+                topicInput.value = topic.trim();
+            } catch (error) {
+                console.error("Failed to suggest topic:", error);
+                errorMessage.textContent = `Could not suggest a topic: ${error.message}`;
+                errorContainer.classList.remove('hidden');
+            } finally {
+                loader.classList.add('hidden');
+                suggestBtn.disabled = false;
+                generateBtn.disabled = false;
+            }
+        }
+
+        /**
+         * ✨ New Feature: Summarizes the generated report.
+         */
+        async function summarizeReport() {
+            console.log("[Feature] Summarizing report...");
+            const reportText = reportOutput.innerText;
+
+            if (!reportText) {
+                errorMessage.textContent = 'No report content to summarize.';
+                errorContainer.classList.add('hidden');
+                return;
+            }
+
+            // Show a temporary loading state for the summary
+            summaryContainer.classList.remove('hidden');
+            summaryOutput.innerHTML = '<p>✨ Summarizing...</p>';
+            summarizeBtn.disabled = true;
+
+            const prompt = `Please provide a concise, one-paragraph summary of the following report:\n\n---\n\n${reportText}`;
+            
+            try {
+                const summary = await callGemini(prompt);
+                summaryOutput.innerHTML = marked.parse(summary);
+            } catch (error) {
+                 console.error("Failed to summarize report:", error);
+                 summaryOutput.innerHTML = `<p class="text-red-600">Could not generate summary: ${error.message}</p>`;
+            } finally {
+                summarizeBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Main orchestration function to generate the report.
+         */
+        async function generateReport() {
+            const topic = topicInput.value.trim();
+            if (!topic) {
+                errorMessage.textContent = 'Please enter a topic.';
+                errorContainer.classList.remove('hidden');
+                return;
+            }
+
+            // --- Workflow Orchestration Starts ---
+            loader.classList.remove('hidden');
+            reportContainer.classList.add('hidden');
+            errorContainer.classList.add('hidden');
+            summaryContainer.classList.add('hidden'); // Hide summary on new report
+            generateBtn.disabled = true;
+            suggestBtn.disabled = true;
+
+            try {
+                // 1. Build the prompt
+                const prompt = buildPrompt(topic);
+
+                // 2. Call the LLM with search enabled
+                const markdownResponse = await callGemini(prompt, true);
+
+                // Store for download/copy features
+                currentReportMarkdown = markdownResponse;
+                currentTopic = topic;
+
+                // 3. Parse and render the output
+                console.log("[Workflow Step 3] Parsing & Rendering: Displaying the final report.");
+                // ✨ Security Enhancement: Sanitize the HTML output from Marked before rendering
+                reportOutput.innerHTML = DOMPurify.sanitize(marked.parse(markdownResponse));
+                reportContainer.classList.remove('hidden');
+
+                // ✨ New Feature: Make all links open in a new tab
+                const links = reportOutput.querySelectorAll('a');
+                links.forEach(link => {
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer'; // Important for security
+                });
+
+            } catch (error) {
+                console.error("Failed to generate report:", error);
+                errorMessage.textContent = `An error occurred: ${error.message}`;
+                errorContainer.classList.remove('hidden');
+            } finally {
+                loader.classList.add('hidden');
+                generateBtn.disabled = false;
+                suggestBtn.disabled = false;
+            }
+            // --- Workflow Orchestration Ends ---
+        }
+        
+        generateBtn.addEventListener('click', generateReport);
+        suggestBtn.addEventListener('click', suggestTopic);
+        summarizeBtn.addEventListener('click', summarizeReport);
+        downloadMdBtn.addEventListener('click', downloadMarkdown);
+        copyGdocsBtn.addEventListener('click', copyForGDocs);
+        topicInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                generateReport();
+            }
+        });
+        
+        // ✨ Add event listeners for new buttons
+        saveKeyBtn.addEventListener('click', saveApiKey);
+        window.addEventListener('load', loadApiKey);
+
+    </script>
+</body>
+</html>
+
