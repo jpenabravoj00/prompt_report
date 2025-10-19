@@ -10,7 +10,7 @@
                    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
                    font-src 'self' https://fonts.gstatic.com; 
                    connect-src 'self' https://generativelanguage.googleapis.com;">
-    <title>Comprehensive Report Generator</title>
+    <title>Claritas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- ✨ New Feature: DOMPurify for sanitizing output -->
@@ -20,6 +20,11 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        .container {
+            max-width: 800px;
+        }
+
         /* ✨ Report Formatting Styles - These will now be correctly applied by the new prompt schema ✨ */
 
         /* General container for the report for consistent spacing */
@@ -106,61 +111,71 @@
 
     <div class="container mx-auto max-w-4xl px-4 py-8 md:py-12">
 
-        <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Jose's Quick Report Generator</h1>
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Claritas</h1>
             <p class="mt-2 text-lg text-gray-600">Get quick, AI-powered reports on any topic.</p>
         </header>
 
         <main class="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
-            <!-- ✨ New Feature: Security Notification -->
-            <div id="security-notice" class="mb-6 p-4 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg text-sm">
-                <p><strong class="font-semibold">Security Update:</strong> To protect your API key, it is now stored only for your current browser session and will be cleared when you close this tab. We have also implemented a strict Content Security Policy to prevent unauthorized scripts from running.</p>
+            <!-- Security Banner -->
+            <div id="security-notice" class="mb-4 p-3 flex items-center justify-between bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg text-sm">
+                <div class="flex items-center">
+                    <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.21 3.03-1.742 3.03H4.42c-1.532 0-2.492-1.696-1.742-3.03l5.58-9.92zM10 13a1 1 0 110-2 1 1 0 010 2zm-1-8a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Your API key is stored for this session only and will be cleared when you close this tab.</span>
+                </div>
+                <button id="close-security-notice" class="text-yellow-800 hover:text-yellow-900">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                    </svg>
+                </button>
             </div>
             
             <!-- API Key Input -->
-            <div class="mb-6 p-4 bg-gray-100 border border-gray-200 rounded-lg">
+            <div class="mb-4 p-3 bg-gray-100 border border-gray-200 rounded-lg">
                  <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-2">Enter Your Gemini API Key:</label>
-                 <div class="flex flex-col sm:flex-row gap-4">
-                    <input type="password" id="api-key-input" class="flex-grow w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Paste your API key here">
-                    <button id="save-key-btn" class="w-full sm:w-auto bg-purple-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-200 shadow-sm">
+                 <div class="flex items-center gap-2">
+                    <input type="password" id="api-key-input" class="flex-grow w-full h-11 px-4 text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition" placeholder="Paste your API key here">
+                    <button id="save-key-btn" class="flex-shrink-0 bg-purple-600 text-white font-semibold px-4 h-11 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-200 shadow-sm">
                         Save Key
                     </button>
                  </div>
                  <p class="text-xs text-gray-500 mt-2">Your key is saved for this session only. Get a key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Google AI Studio</a>.</p>
             </div>
 
-            <div class="mb-6">
+            <div class="mb-4">
                 <label for="topic-input" class="block text-sm font-medium text-gray-700 mb-2">Enter Report Topic:</label>
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <input type="text" id="topic-input" class="flex-grow w-full px-4 py-2 text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="e.g., 'Impact of Quantum Computing on Cybersecurity'">
-                    <button id="suggest-btn" class="w-full sm:w-auto bg-gray-200 text-gray-800 font-semibold px-6 py-2 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition duration-200">
+                <div class="flex items-center gap-2">
+                    <input type="text" id="topic-input" class="flex-grow w-full h-11 px-4 text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="e.g., 'Impact of Quantum Computing on Cybersecurity'">
+                    <button id="suggest-btn" class="flex-shrink-0 bg-gray-200 text-gray-800 font-semibold px-4 h-11 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition duration-200">
                         ✨ Suggest Topic
                     </button>
-                    <button id="generate-btn" class="w-full sm:w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 shadow-sm">
+                    <button id="generate-btn" class="flex-shrink-0 bg-blue-600 text-white font-semibold px-4 h-11 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 shadow-sm">
                         Generate Report
                     </button>
                 </div>
             </div>
 
             <!-- Loading Indicator -->
-            <div id="loader" class="hidden text-center my-8">
+            <div id="loader" class="hidden text-center my-6">
                 <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 <p class="mt-2 text-gray-600">Generating report... This may take a moment.</p>
             </div>
 
             <!-- Report Output Area -->
-            <div id="report-container" class="hidden mt-8 border-t border-gray-200 pt-6">
+            <div id="report-container" class="hidden mt-6 border-t border-gray-200 pt-6">
                  <h2 class="text-2xl font-bold text-gray-900 mb-4">Generated Report</h2>
                  
                  <!-- Action Buttons -->
-                 <div class="flex flex-wrap gap-4 mb-4">
-                    <button id="summarize-btn" class="bg-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-200 shadow-sm">
+                 <div class="flex flex-wrap gap-2 mb-4">
+                    <button id="summarize-btn" class="flex-shrink-0 bg-purple-600 text-white font-semibold px-4 h-11 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-200 shadow-sm flex items-center">
                         ✨ Summarize Report
                     </button>
-                    <button id="download-md-btn" class="bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200 shadow-sm">
+                    <button id="download-md-btn" class="flex-shrink-0 bg-green-600 text-white font-semibold px-4 h-11 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200 shadow-sm flex items-center">
                         ⬇️ Download .md
                     </button>
-                    <button id="copy-gdocs-btn" class="bg-blue-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition duration-200 shadow-sm">
+                    <button id="copy-gdocs-btn" class="flex-shrink-0 bg-blue-500 text-white font-semibold px-4 h-11 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 transition duration-200 shadow-sm flex items-center">
                         📋 Copy for Google Docs
                     </button>
                  </div>
@@ -546,6 +561,9 @@ Your final output must be a single Markdown block. Do not deviate from this stru
         // ✨ Add event listeners for new buttons
         saveKeyBtn.addEventListener('click', saveApiKey);
         window.addEventListener('load', loadApiKey);
+        document.getElementById('close-security-notice').addEventListener('click', () => {
+            document.getElementById('security-notice').style.display = 'none';
+        });
 
     </script>
 </body>
